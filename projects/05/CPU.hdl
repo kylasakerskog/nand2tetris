@@ -39,5 +39,56 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // A命令 => a-inst=1, C命令 => c-inst=1
+    Or(a=instruction[15], b=instruction[15], out=c-instruction);
+    Not(in=c-instruction, out=a-instruction);
+
+    // Dレジスタへ保存するのはC命令のときのみ
+    // C命令の中でDレジスタに保存するのはinstruction[4]が1のとき
+    And(a=c-instruction, b=instruction[4], out=write-d);
+
+    // write-dが1のときalu-outの結果をDレジスタに保存
+    DRegister(in=alu-out, load=write-d, out=out-d);
+
+    // Aレジスタに保存するときはA命令 or C命令での計算結果
+    // in-aはAレジスタへの入力
+    Mux16(a=alu-out, b=instruction, sel=a-instruction, out=in-a);
+
+    // C命令の中でAレジスタに保存するのはinstruction[5]が1のとき
+    Or(a=a-instruction, b=instruction[5], out=write-a);
+
+    // write-aが1のとき，Aレジスタに保存
+    ARegister(in=in-a, load=write-a, out=out-a, out[0..14]=addressM);
+
+    // AレジスタとinMのどっちを使うか
+    Mux16(a=out-a, b=inM, sel=instruction[12], out=alu-in);
+
+    // メモリの演算
+    ALU(x=out-d, y=alu-in, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=alu-out, zr=alu-zr, ng=alu-ng);
+    
+    // Mに書き込みを行う(C命令のとき)
+    And(a=c-instruction, b=instruction[3], out=writeM);
+
+    // jmp判定
+    // j1 かつ out < 0
+    And(a=instruction[2], b=alu-ng, out=j1);
+
+    // j2 かつ out = 0
+    And(a=instruction[1], b=alu-zr, out=j2);
+
+    // j3 かつ out > 0
+    // OrとNotをつかってpsをつくる
+    Or(a=alu-ng, b=alu-zr, out=not-ps);
+    Not(in=not-ps, out=ps);
+    And(a=instruction[0], b=ps, out=j3);
+    
+    // A命令 => inc
+    // C命令 かつ jump でないなら inc
+    // C命令 かつ jump なら load
+    Or(a=j1, b=j2, out=j12);
+    Or(a=j12, b=j3, out=j123);
+    And(a=j123, b=c-instruction, out=pc-load);
+    Not(in=pc-load, out=pc-inc);
+
+    PC(in=out-a, load=pc-load, inc=pc-inc, reset=reset, out[0..14]=pc);
 }

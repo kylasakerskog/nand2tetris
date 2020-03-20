@@ -1,3 +1,4 @@
+
 // This file is part of www.nand2tetris.org
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
@@ -27,5 +28,18 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // address[14]が0のときはRAM16K，1のときはScreen, Keyboardはinに左右されない
+    DMux(in=load, sel=address[14], a=d0, b=d1);
+    RAM16K(in=in, load=d0, address=address[0..13], out=a);
+    Screen(in=in, load=d1, address=address[0..12], out=b);
+    Keyboard(out=c);
+
+    // Keyboardに出力する条件
+    And(a=address[14], b=address[13], out=k);
+
+    // RAM16KかScreenか
+    Mux16(a=a, b=b, sel=address[14], out=o);
+
+    // Keyboardに出力
+    Mux16(a=o, b=c, sel=k, out=out);
 }
