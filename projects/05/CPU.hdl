@@ -39,7 +39,7 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // A命令 => a-inst=1, C命令 => c-inst=1
+    // A命令 => a-instruction=1, C命令 => c-instruction=1
     Or(a=instruction[15], b=instruction[15], out=c-instruction);
     Not(in=c-instruction, out=a-instruction);
 
