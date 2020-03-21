@@ -7,6 +7,7 @@ def main():
         sys.exit(1)
 
     asm_file = sys.argv[1]
+    
         
     with Parser(asm_file) as hp:
 
