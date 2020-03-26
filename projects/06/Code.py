@@ -18,7 +18,7 @@ comp_to_code = {
     '!D' : '0001101',
     '!A' : '0110001',
     '-D' : '0001111',
-    'A' : '0110011', 
+    '-A' : '0110011', 
     'D+1' : '0011111',
     'A+1' : '0110111',
     'D-1' : '0001110',
@@ -30,8 +30,9 @@ comp_to_code = {
     'D|A' : '0010101',
     'M' : '1110000',
     '!M' : '1110001',
-    '-M' : '1110111',
-    'M+1' : '1110010',
+    '-M' : '1110011',
+    'M+1' : '1110111',
+    'M-1' : '1110010',
     'D+M' : '1000010',
     'D-M' : '1010011',
     'M-D' : '1000111',
@@ -51,11 +52,15 @@ jump_to_code = {
 }
     
 def dest(mnemonic):
+    if mnemonic == None:
+        return dest_to_code['null']    
     return dest_to_code[mnemonic]
 
 def comp(mnemonic):
     return comp_to_code[mnemonic]
 
 def jump(mnemonic):
+    if mnemonic == None:
+        return jump_to_code['null']
     return jump_to_code[mnemonic]
 

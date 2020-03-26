@@ -4,9 +4,9 @@ A_COMMAND = 0
 C_COMMAND = 1
 L_COMMAND = 2
 
-A_COMMAND_PATTERN = re.compile(r'@([0-9a-zA-Z_\.\$:]+)')
-L_COMMAND_PATTERN = re.compile(r'\(([0-9a-zA-Z_\.\$:]*)\)')
-C_COMMAND_PATTERN = re.compile(r'(?:(A?M?D?)=)?([^;]+)(?:;(.+))?')
+A_COMMAND_PATTERN = re.compile(r"@([0-9a-zA-Z_\.\$:]+)")
+L_COMMAND_PATTERN = re.compile(r"\(([0-9a-zA-Z_\.\$:]*)\)")
+C_COMMAND_PATTERN = re.compile(r"(?:(A?M?D?)=)?([^;]+)(?:;(.+))?")
 
 class Parser:
     def __init__(self, filepath):
@@ -17,68 +17,73 @@ class Parser:
         # with文に入ったときに__enter__メソッドが呼ばれる
         return self
         
-    def __exit__(self, ex_type, ex_val, traceback):
+    def __exit__(self, exception_type, exception_value, traceback):
         # with文を抜けるとき__exit__メソッドが呼ばれる
         self.f.close()
 
-    def advance():
+    def advance(self):
         # 一行ずつ出力
-        line = f.readline() # => hasMoreCommands()の役割
         while True:
+            line = self.f.readline() # => hasMoreCommands()の役割
             if not line:
                 self.command = None
                 break
-            line = val.replace(' ', '')
-            comment_i = line.find("//")
+            # strip() コマンドで \n を消す
+            val = line.strip().replace(' ', '')
+            comment_i = val.find("//")
             if comment_i != -1:
-                line = line[:comment_i]
+                val = val[:comment_i]
                 
-            if line != '':
-                self.command = line
+            if val != '':
+                self.command = val
                 break
                 
         return self.command
 
-    def commandType():
+    def commandType(self):
         # 命令のタイプを出力
         if self.command[0] == '@':
             return A_COMMAND
         elif self.command[0] == '(' :
-            return C_COMMAND
-        else:
             return L_COMMAND
+        else:
+            return C_COMMAND
             
-    def symbol():
+    def symbol(self):
         # Symbolだけを取得
-        cmd_type = commandType()
+        cmd_type = self.commandType()
         if cmd_type == A_COMMAND:
             m = A_COMMAND_PATTERN.match(self.command)
+            if not m:
+                raise Exception()
             return m.group(1)
         elif cmd_type == L_COMMAND:
             m = L_COMMAND_PATTERN.match(self.command)
+            if not m:
+                raise Exception()
             return m.group(1)
         else:
             raise Exception()
                 
-    def dest():
-        cmd_type = commandType()
-        if cmd_type != C_COMMAND:
+    def dest(self):
+        cmd_type = self.commandType()
+        if cmd_type == C_COMMAND:
             m = C_COMMAND_PATTERN.match(self.command)
             return m.group(1)
         else:
             raise Exception()
 
-    def comp():
-        cmd_type = commandType()
-        if cmd_type != C_COMMAND:
+    def comp(self):
+        cmd_type = self.commandType()
+        if cmd_type == C_COMMAND:
             m = C_COMMAND_PATTERN.match(self.command)
             return m.group(2)
         else:
             raise Exception()
 
-    def jump():
-        cmd_type = commandType()
-        if cmd_type != C_COMMAND:
+    def jump(self):
+        cmd_type = self.commandType()
+        if cmd_type == C_COMMAND:
             m = C_COMMAND_PATTERN.match(self.command)
             return m.group(3)
         else:
